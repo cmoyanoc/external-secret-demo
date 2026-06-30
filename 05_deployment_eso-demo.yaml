@@ -1,0 +1,37 @@
+# 5. Deployment de la Aplicación Web
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+  namespace: eso-demo
+  labels:
+    app: web-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+        - name: web-app
+          # Usamos una imagen de nginx unprivileged que es compatible
+          # con las políticas de seguridad restrictivas de OpenShift (SCC)
+          image: nginxinc/nginx-unprivileged:latest
+          ports:
+            - containerPort: 8080
+          env:
+            # Inyectamos los secretos generados por ESO como variables de entorno
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret-to-use # Referencia al target name del ExternalSecret
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret-to-use
+                  key: DB_PASSWORD
